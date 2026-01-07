@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm  # <-- AGGIUNGI QUESTO
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -34,9 +34,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_access_token(data: dict, expires_delta: Optional[int] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = datetime.now() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    if expires_delta:
+        expire = datetime.now() + expires_delta
+    else:
+        expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -60,14 +63,22 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     return User(username=new_user.username, full_name=new_user.full_name)
 
 
+# MODIFICA QUESTA FUNZIONE
 @router.post("/login")
-def login(username: str, password: str, db: Session = Depends(get_db)):
-    user = db.query(UserDB).filter(UserDB.username == username).first()
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),  # <-- CAMBIA QUI
+    db: Session = Depends(get_db)
+):
+    user = db.query(UserDB).filter(UserDB.username == form_data.username).first()
 
-    if not user or not verify_password(password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    access_token = create_access_token(data={"sub": username})
+    access_token = create_access_token(data={"sub": form_data.username})
 
     return {"access_token": access_token, "token_type": "bearer"}
 
