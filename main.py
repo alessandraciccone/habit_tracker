@@ -3,14 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth import router as auth_router
 from app.habits import router as habits_router
 from app.database import engine, Base
-from app.models_sql import UserDB, HabitDB, HabitLogDB  # Importa i modelli
+from app.models_sql import UserDB, HabitDB, HabitLogDB
 
-# CREA LE TABELLE ALL'AVVIO
+# Crea le tabelle all'avvio
 Base.metadata.create_all(bind=engine)
 
-# Definisci lo schema di sicurezza Bearer globalmente
-security = HTTPBearer()
+app = FastAPI()
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
