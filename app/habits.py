@@ -6,7 +6,7 @@ from app.models import Habit, HabitCreate
 from app.auth import get_current_user
 
 router = APIRouter()
-@router.post("/", response_model=Habit)
+@router.get("/", response_model=Habit)
 def get_habits(db:Session=Depends(get_db), user=Depends(get_current_user)):
     habits= db.query(HabitDB).filter(HabitDB.owner_id==user.id).all()
     return habits
