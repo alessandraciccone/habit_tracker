@@ -13,7 +13,7 @@ app = FastAPI()
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:8000"],
     allow_credentials=True,
     allow_methods=["*"],  
     allow_headers=["*"],  
@@ -21,3 +21,6 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/auth")
 app.include_router(habits_router, prefix="/habits")
+
+from fastapi.middleware.cors import CORSMiddleware
+
