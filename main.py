@@ -8,7 +8,8 @@ from app.models_sql import UserDB, HabitDB, HabitLogDB  # Importa i modelli
 # CREA LE TABELLE ALL'AVVIO
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+# Definisci lo schema di sicurezza Bearer globalmente
+security = HTTPBearer()
 
 app.add_middleware(
     CORSMiddleware,
